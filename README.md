@@ -1,1 +1,0 @@
-# dannyx-loot-naming

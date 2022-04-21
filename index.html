@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dannyx Loot Naming</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css">
+</head>
+
+<body>
+    <br>
+    <br>
+    <br>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-6">
+                <h4>Entrada</h4>
+                <textarea class="form-control" id="input"></textarea>
+            </div>
+            <div class="col-md-6">
+                <h4>Saída</h4>
+                <textarea class="form-control" id="output"></textarea>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        console.log('loading...')
+
+        fetch('https://raw.githubusercontent.com/opentibiabr/clientid-finder/gh-pages/data.json').then(response => response.json()).then(raw => {
+            let items = {};
+            raw.forEach(e => {
+                if (e.client_id) {
+                    items[e.client_id] = e.name;
+                }
+            })
+
+            console.log('loading... done! ' + items.length)
+            input.onchange = function () {
+                let rows = input.value.split("\n").map(e => {
+                    let line = e.trim();
+
+                    if (line.indexOf("--") != -1) {
+                        return line;
+                    }
+
+                    if (line.lastIndexOf(",") === (line.length - 1)) {
+                        line = line.substring(0, line.length - 1);
+                    }
+
+                    line = line.replaceAll('=', ':');
+                    line = line.replace(/:\s*"([^"]*)"/g, function (match, p1) {
+                        return ': "' + p1.replace(/:/g, '@colon@') + '"';
+                    })
+                        .replace(/:\s*'([^']*)'/g, function (match, p1) {
+                            return ': "' + p1.replace(/:/g, '@colon@') + '"';
+                        })
+                        .replace(/(['"])?([a-z0-9A-Z_]+)(['"])?\s*:/g, '"$2": ')
+                        .replace(/@colon@/g, ':')
+
+                    let obj = JSON.parse(line)
+                    let itemName = '';
+                    if (obj.hasOwnProperty('id') && items[obj.id]) {
+                        itemName = ' -- ' + items[obj.id];
+                    }
+
+                    return e.trim() + itemName
+                })
+                output.value = rows.join("\n");
+            }
+
+            input.onchange()
+
+        })
+    </script>
+</body>
+
+</html>
